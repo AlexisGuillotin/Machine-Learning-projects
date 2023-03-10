@@ -8,10 +8,13 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
+
+from sklearn.metrics import confusion_matrix, accuracy_score
+import matplotlib.pyplot as plt
 
 
 def import_measurements(filename):
@@ -33,30 +36,6 @@ def import_measurements(filename):
     # Concatenate the dataframes into a single dataframe
     data_df = pd.concat([jcd_df, phog_df, cedd_df, fcth_df, fuzzy_df], axis=1)
 
-    # Create a label vector indicating the class of each image
-    label = []
-    for i in range(1000):
-        if i < 100:
-            label.append('Jungle')
-        elif i < 200:
-            label.append('Plage')
-        elif i < 300:
-            label.append('Monument')
-        elif i < 400:
-            label.append('Bus')
-        elif i < 500:
-            label.append('Dinosaure')
-        elif i < 600:
-            label.append('Elephant')
-        elif i < 700:
-            label.append('Fleur')
-        elif i < 800:
-            label.append('Cheval')
-        elif i < 900:
-            label.append('Montagne')
-        else:
-            label.append('Plat')
-        
     # create label vector
     label = np.zeros(1000)
     for i in range(10):
@@ -77,61 +56,48 @@ def cnn_model_keras(data_df, label):
 
     # Split the dataset into training, validation, and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
-
-    # Reshape the data to the format expected by the CNN
-        # Decomposition of test_size in prime numbers
-            # test_size = 565 760
-            # 565 760 = 2^9 * 5 * 13 * 17
-            # 565 760 = 512 * 221 * 5
-    X_train = X_train.reshape((-1, 512, 221, 5))
-        # Decomposition of test_size in prime numbers
-            # X_val = 141 440
-            # 141 440 = 2^7 * 5 * 13 * 17
-            # 141 440 = 128 * 221 * 5
-    X_val = X_val.reshape((-1, 128, 221, 5))
-        # Decomposition of X_test in prime numbers
-            # X_val = 176 800
-            # 176 800 = 2^5 * 5^2 * 13 * 17
-            # 176 800 = 40 * 127 * 35
-    X_test = X_test.reshape((-1, 160, 221, 5))
 
     X_train = np.asarray(X_train).astype('float32')
     y_train = np.asarray(y_train).astype('float32')
-
+     
     # Build the CNN model
     print("\t○\tBuild the model")
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(512, 221, 5)))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Conv2D(128, (3, 3), activation='relu'))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Flatten())
     model.add(Dense(128, activation='relu'))
+    model.add(Dense(64, activation='relu'))
     model.add(Dense(10, activation='softmax'))
 
     # Compile the model
+    print("\t○\tModel compilation")
     model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
-
-    print("\t○\tModel requirements")
-    [print(i.shape, i.dtype) for i in model.inputs]
-    [print(o.shape, o.dtype) for o in model.outputs]
-    [print(l.name, l.input_shape, l.dtype) for l in model.layers]
-
+ 
     # Train the model
-    history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_val, y_val), verbose=1)
+    history = model.fit(X_train, y_train, epochs=25, batch_size=32, validation_data=(X_test, y_test), verbose=1)
+
+    # Make predictions on the test set
+    y_pred = model.predict(X_test)
+
+    # Convert the one-hot encoded vector back to labels
+    y_pred = np.argmax(y_pred, axis=1)
 
     # Evaluate the model on the test set
     test_loss, test_acc = model.evaluate(X_test, y_test)
-    print('Test accuracy:', test_acc)
+    print('Test accuracy:', test_acc, ", Test loss: ", test_loss)
+
+        # Plot the confusion matrix
+    y_test = np.argmax(y_test, axis=1)
+    cm = confusion_matrix(y_test, y_pred)
+    plt.figure(figsize=(10, 10))
+    plt.imshow(cm, cmap='Oranges')
+    plt.show()
+
+    return model
+
 
 def main():
+
     print('•\tImportation des mesures')
-
     jcd_df, phog_df, cedd_df, fcth_df, fuzzy_df, data_df, label = import_measurements('WangSignatures.xlsx')
-
     print('•\tImportation des mesures: ok')
 
     print('•\tCréation du modèle CNN avec keras')
