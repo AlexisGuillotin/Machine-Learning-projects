@@ -4,3 +4,5 @@ opencv-python
 scikit-learn
 tensorflow
 matplotlib
+openpyxl
+jupyter
