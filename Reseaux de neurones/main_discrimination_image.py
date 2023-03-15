@@ -8,7 +8,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Activation
 from keras.optimizers import Adam
 from keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
@@ -72,27 +72,31 @@ def cnn_model_keras(data_df, label):
     model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
  
     # Train the model
-    history = model.fit(X_train, y_train, epochs=25, batch_size=32, validation_data=(X_test, y_test), verbose=1)
+    history = model.fit(X_train, y_train, epochs=100, batch_size=32, validation_data=(X_test, y_test), verbose=1)
+
+    # Evaluate the model on the test set
+    test_loss, test_acc = model.evaluate(X_test, y_test)
+    print('Test accuracy:', test_acc, ", Test loss: ", test_loss)
 
     # Make predictions on the test set
     y_pred = model.predict(X_test)
 
     # Convert the one-hot encoded vector back to labels
     y_pred = np.argmax(y_pred, axis=1)
-
-    # Evaluate the model on the test set
-    test_loss, test_acc = model.evaluate(X_test, y_test)
-    print('Test accuracy:', test_acc, ", Test loss: ", test_loss)
-
-        # Plot the confusion matrix
+    
+    # Plot the confusion matrix
     y_test = np.argmax(y_test, axis=1)
     cm = confusion_matrix(y_test, y_pred)
     plt.figure(figsize=(10, 10))
     plt.imshow(cm, cmap='Oranges')
     plt.show()
+    accuracy = accuracy_score(y_test, y_pred)
+    print('Accuracy:', accuracy )
 
+    # Compute the error rate
+    error_rate = 1 - accuracy
+    print(f'Error rate: {error_rate}')
     return model
-
 
 def main():
 
