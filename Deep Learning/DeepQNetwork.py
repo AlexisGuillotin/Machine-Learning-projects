@@ -91,7 +91,7 @@ for e in range(EPISODES):
     state = np.array(maze).flatten().reshape(1, state_size)
     for time in range(100):
         action = agent.act(state)
-        next_state, reward, done = perform_action(maze, action)  # perform action in emulator and observe reward and next state
+        next_state, reward, done = perform_action(state, action)  # perform action in emulator and observe reward and next state
         next_state = np.array(next_state).flatten().reshape(1, state_size)
         agent.remember(state, action, reward, next_state, done)
         state = next_state
