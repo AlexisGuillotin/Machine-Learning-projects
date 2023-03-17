@@ -93,7 +93,7 @@ def cnn_model_wang_images(image_folder, file_extension):
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     # Train the model on the training set
-    history = model.fit(X_train, y_train, batch_size=32, epochs=1, validation_data=(X_test, y_test))
+    history = model.fit(X_train, y_train, batch_size=32, epochs=10, validation_data=(X_test, y_test))
 
     plot_accuracy_evolution(history)
 
@@ -190,30 +190,34 @@ def transfert_learning(X_train, y_train, num_classes):
     
 def main():
     print('•\tMeasurement Importation')
-    #data_df = import_measures()
+    data_df = import_measures()
     print('•\tMeasurement Importation: OK')
 
     print('•\tCNN Model on Wang images')
     # Load the images and their corresponding labels
-    image_folder = 'C:/Users/cmbri/Documents/0.CNAM/Annee 3/USSI5E - Machine Learning/Machine-Learning-projects/Reseaux de neurones/Wang'
+    image_folder = 'C:/Users/ELE5f76370fc459a/Desktop/Machine-Learning-projects/Reseaux de neurones/Wang'
     images, images_labels, model, X_train, y_train = cnn_model_wang_images(image_folder, '.jpg')
+    model.save('model_wang.h5')
+
     print('•\tCNN Model on Wang images: OK')
 
     print('•\tData augmentation')
-    #data_augmentation(images)
+    data_augmentation(images)
     print('•\tData augmentation: OK')
 
     print('•\tCNN Model on Wang images AFTER DATA AUGMENTATION')
     # Load the images and their corresponding labels
-    image_folder_augmentation = 'C:/Users/cmbri/Documents/0.CNAM/Annee 3/USSI5E - Machine Learning/Machine-Learning-projects/Reseaux de neurones/Wang_Data_Augmentation'
-    #images, images_labels, model, X_train, y_train = cnn_model_wang_images(image_folder_augmentation, '.png')
+    image_folder_augmentation = 'C:/Users/ELE5f76370fc459a/Desktop/Machine-Learning-projects/Reseaux de neurones/Wang_Data_Augmentation'
+    images, images_labels, model, X_train, y_train = cnn_model_wang_images(image_folder_augmentation, '.png')
+    model.save('model_wang_data_augmentation.h5')
     print('•\tCNN Model on Wang images AFTER DATA AUGMENTATION: OK')
 
     print('•\tCNN Model with Transfert Learning')
     # Load the images and their corresponding labels
-    image_folder_augmentation = 'C:/Users/cmbri/Documents/0.CNAM/Annee 3/USSI5E - Machine Learning/Machine-Learning-projects/Reseaux de neurones/Wang_Data_Augmentation'
+    image_folder_augmentation = 'C:/Users/ELE5f76370fc459a/Desktop/Machine-Learning-projects/Reseaux de neurones/Wang_Data_Augmentation'
     num_classes = 11
-    transfert_learning(X_train, y_train, num_classes)
+    new_model, model_info = transfert_learning(X_train, y_train, num_classes)
+    new_model.save('model_wang_transfert_learning.h5')
     print('•\tCNN Model with Transfert Learning: OK')
 
 main()
